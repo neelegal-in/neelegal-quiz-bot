@@ -1,0 +1,23 @@
+name: Telegram auto-poster
+on:
+  schedule:
+    - cron: "0,30 * * * *"      # every 30 minutes (runs at :30 and :00 India time)
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 post_bot.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          YOUTUBE_CHANNEL_ID: ${{ vars.YOUTUBE_CHANNEL_ID }}
+      - name: Save what was posted
+        run: |
+          git config user.name "neelegal-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add state.json || true
+          git diff --cached --quiet || (git commit -m "update posted list [skip ci]" && git push)
